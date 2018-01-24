@@ -14,14 +14,17 @@ package org.camunda.bpm.engine.impl.identity.db;
 
 import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.camunda.bpm.engine.AuthenticationException;
 import org.camunda.bpm.engine.authorization.Permissions;
 import org.camunda.bpm.engine.authorization.Resources;
 import org.camunda.bpm.engine.identity.Group;
 import org.camunda.bpm.engine.identity.Tenant;
 import org.camunda.bpm.engine.identity.User;
+import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.impl.context.Context;
 import org.camunda.bpm.engine.impl.identity.WritableIdentityProvider;
 import org.camunda.bpm.engine.impl.persistence.entity.GroupEntity;
@@ -29,6 +32,7 @@ import org.camunda.bpm.engine.impl.persistence.entity.MembershipEntity;
 import org.camunda.bpm.engine.impl.persistence.entity.TenantEntity;
 import org.camunda.bpm.engine.impl.persistence.entity.TenantMembershipEntity;
 import org.camunda.bpm.engine.impl.persistence.entity.UserEntity;
+import org.camunda.bpm.engine.impl.util.ClockUtil;
 
 /**
  * <p>{@link WritableIdentityProvider} implementation backed by a
@@ -73,6 +77,41 @@ public class DbIdentityServiceProvider extends DbReadOnlyIdentityServiceProvider
 
       deleteAuthorizations(Resources.USER, userId);
       getDbEntityManager().delete(user);
+    }
+  }
+
+  public boolean checkPassword(String userId, String password) {
+    UserEntity user = findUserById(userId);
+    if ((user == null) || (password == null)) {
+      return false;
+    }
+
+    int attempts = user.getAttempts();
+    ProcessEngineConfigurationImpl processEngineConfiguration = Context.getProcessEngineConfiguration();
+    int maxAttempts = processEngineConfiguration.getLoginMaxAttempts();
+    if (attempts < maxAttempts) {
+      if (user.getLockExpirationTime() != null && user.getLockExpirationTime().after(ClockUtil.getCurrentTime())) {
+        throw new AuthenticationException(userId);
+      } else {
+        if (matchPassword(password, user)) {
+          return true;
+        } else {
+          ++attempts;
+
+          int maxDelayInMs = processEngineConfiguration.getLoginDelayMaxTime() * 1000;
+          int delay = (processEngineConfiguration.getLoginInitialDelay() * processEngineConfiguration.getLoginDelayFactor()) * 1000;
+          if (delay > maxDelayInMs) {
+            delay = maxDelayInMs;
+          }
+          Date lockExpirationTime = new Date(ClockUtil.getCurrentTime().getTime() + delay);
+
+          getIdentityInfoManager().updateLockUser(userId, attempts, lockExpirationTime);
+
+          return false;
+        }
+      }
+    } else {
+      throw new AuthenticationException(userId, "Contact your administrator.");
     }
   }
 
