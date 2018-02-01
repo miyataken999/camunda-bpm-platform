@@ -166,7 +166,7 @@ public class IdentityInfoManager extends AbstractManager {
     }
   }
 
-  public void updateLockUser(UserEntity user, int attempts, Date lockExpirationTime) {
+  public void updateUserLock(UserEntity user, int attempts, Date lockExpirationTime) {
     user.setAttempts(attempts);
     user.setLockExpirationTime(lockExpirationTime);
     getDbEntityManager().update(UserEntity.class, "updateUserLock", user);

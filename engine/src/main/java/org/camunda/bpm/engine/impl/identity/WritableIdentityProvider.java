@@ -59,6 +59,8 @@ public interface WritableIdentityProvider extends Session {
   public void deleteUser(String userId);
 
 
+  public void unlockUser(String userId);
+
   // groups /////////////////////////////////////////////////
 
   /**

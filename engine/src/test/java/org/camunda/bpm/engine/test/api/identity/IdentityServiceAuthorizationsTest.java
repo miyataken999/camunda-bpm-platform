@@ -28,11 +28,17 @@ import static org.camunda.bpm.engine.authorization.Resources.TENANT_MEMBERSHIP;
 import static org.camunda.bpm.engine.authorization.Resources.USER;
 import static org.camunda.bpm.engine.test.api.authorization.util.AuthorizationTestUtil.assertExceptionInfo;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.camunda.bpm.engine.AuthorizationException;
 import org.camunda.bpm.engine.authorization.Authorization;
+import org.camunda.bpm.engine.authorization.Groups;
 import org.camunda.bpm.engine.authorization.MissingAuthorization;
 import org.camunda.bpm.engine.identity.Group;
 import org.camunda.bpm.engine.identity.Tenant;
@@ -41,6 +47,7 @@ import org.camunda.bpm.engine.impl.persistence.entity.GroupEntity;
 import org.camunda.bpm.engine.impl.persistence.entity.TenantEntity;
 import org.camunda.bpm.engine.impl.persistence.entity.UserEntity;
 import org.camunda.bpm.engine.impl.test.PluggableProcessEngineTestCase;
+import org.camunda.bpm.engine.impl.util.ClockUtil;
 import org.junit.Assert;
 
 /**
@@ -50,6 +57,7 @@ import org.junit.Assert;
 public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTestCase {
 
   private final static String jonny2 = "jonny2";
+  private final static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
   @Override
   protected void tearDown() throws Exception {
@@ -164,6 +172,95 @@ public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTes
     User jonny3 = identityService.newUser("jonny3");
     identityService.saveUser(jonny3);
 
+  }
+  public void testUserUnlock() throws ParseException {
+
+    // crate user while still in god-mode:
+    String userId = "jonny";
+    User jonny = identityService.newUser(userId);
+    jonny.setPassword("xxx");
+    identityService.saveUser(jonny);
+
+    lockUser(userId, "invalid pwd");
+
+    // assume
+    UserEntity lockedUser = (UserEntity) identityService.createUserQuery().userId(jonny.getId()).singleResult();
+    assertNotNull(lockedUser);
+    assertNotNull(lockedUser.getLockExpirationTime());
+    assertEquals(10, lockedUser.getAttempts());
+
+
+    // create global auth
+    Authorization basePerms = authorizationService.createNewAuthorization(AUTH_TYPE_GLOBAL);
+    basePerms.setResource(USER);
+    basePerms.setResourceId(ANY);
+    basePerms.addPermission(ALL);
+    authorizationService.saveAuthorization(basePerms);
+
+    // set auth
+    processEngineConfiguration.setAuthorizationEnabled(true);
+    identityService.setAuthentication("admin", Collections.singletonList(Groups.CAMUNDA_ADMIN), null);
+
+    // when
+    identityService.unlockUser(lockedUser.getId());
+
+    // then
+    lockedUser = (UserEntity) identityService.createUserQuery().userId(jonny.getId()).singleResult();
+    assertNotNull(lockedUser);
+    assertNull(lockedUser.getLockExpirationTime());
+    assertEquals(0, lockedUser.getAttempts());
+  }
+
+  public void testUserUnlockWithoutAuthorization() throws ParseException {
+
+    // crate user while still in god-mode:
+    String userId = "jonny";
+    User jonny = identityService.newUser(userId);
+    jonny.setPassword("xxx");
+    identityService.saveUser(jonny);
+
+    lockUser(userId, "invalid pwd");
+
+    // assume
+    UserEntity lockedUser = (UserEntity) identityService.createUserQuery().userId(jonny.getId()).singleResult();
+    assertNotNull(lockedUser);
+    assertNotNull(lockedUser.getLockExpirationTime());
+    assertEquals(10, lockedUser.getAttempts());
+
+    processEngineConfiguration.setAuthorizationEnabled(true);
+    identityService.setAuthentication("admin", null, null);
+
+    // when
+    try {
+      identityService.unlockUser(lockedUser.getId());
+      fail("expected exception");
+    } catch (AuthorizationException e) {
+      assertTrue(e.getMessage().contains("Required authenticated group 'camunda-admin'."));
+    }
+
+    // return to god-mode
+    processEngineConfiguration.setAuthorizationEnabled(false);
+
+    // then
+    lockedUser = (UserEntity) identityService.createUserQuery().userId(jonny.getId()).singleResult();
+    assertNotNull(lockedUser);
+    assertNotNull(lockedUser.getLockExpirationTime());
+    assertEquals(10, lockedUser.getAttempts());
+  }
+
+  private void lockUser(String userId, String invalidPassword) throws ParseException {
+    Date now = sdf.parse("2000-01-24T13:00:00");
+    ClockUtil.setCurrentTime(now);
+    try {
+      for (int i = 0; i <= 11; i++) {
+        assertFalse(identityService.checkPassword(userId, invalidPassword));
+        now = DateUtils.addMinutes(now, 2);
+        ClockUtil.setCurrentTime(now);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    ClockUtil.setCurrentTime(new Date());
   }
 
   public void testGroupCreateAuthorizations() {

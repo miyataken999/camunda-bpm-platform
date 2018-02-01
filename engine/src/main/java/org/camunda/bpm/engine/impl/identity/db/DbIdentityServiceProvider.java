@@ -105,13 +105,20 @@ public class DbIdentityServiceProvider extends DbReadOnlyIdentityServiceProvider
           }
           Date lockExpirationTime = new Date(ClockUtil.getCurrentTime().getTime() + delay);
 
-          getIdentityInfoManager().updateLockUser(userId, attempts, lockExpirationTime);
+          getIdentityInfoManager().updateUserLock(user, attempts, lockExpirationTime);
 
           return false;
         }
       }
     } else {
       throw new AuthenticationException(userId, "Contact your administrator.");
+    }
+  }
+
+  public void unlockUser(String userId) {
+    UserEntity user = findUserById(userId);
+    if(user != null) {
+      getIdentityInfoManager().updateUserLock(user, 0, null);
     }
   }
 

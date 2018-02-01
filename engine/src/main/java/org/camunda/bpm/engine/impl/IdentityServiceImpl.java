@@ -55,6 +55,7 @@ import org.camunda.bpm.engine.impl.cmd.SaveTenantCmd;
 import org.camunda.bpm.engine.impl.cmd.SaveUserCmd;
 import org.camunda.bpm.engine.impl.cmd.SetUserInfoCmd;
 import org.camunda.bpm.engine.impl.cmd.SetUserPictureCmd;
+import org.camunda.bpm.engine.impl.cmd.UnlockUserCmd;
 import org.camunda.bpm.engine.impl.identity.Account;
 import org.camunda.bpm.engine.impl.identity.Authentication;
 import org.camunda.bpm.engine.impl.persistence.entity.GroupEntity;
@@ -136,6 +137,10 @@ public class IdentityServiceImpl extends ServiceImpl implements IdentityService 
       LOG.debugCaughtOptimisticLockingException(e);
     }
     return isPassword;
+  }
+
+  public void unlockUser(String userId) {
+    commandExecutor.execute(new UnlockUserCmd(userId));
   }
 
   public void deleteUser(String userId) {
