@@ -82,42 +82,68 @@ public class DbIdentityServiceProvider extends DbReadOnlyIdentityServiceProvider
 
   public boolean checkPassword(String userId, String password) {
     UserEntity user = findUserById(userId);
-    if ((user == null) || (password == null)) {
+    if (user == null || password == null) {
       return false;
     }
 
-    int attempts = user.getAttempts();
-    ProcessEngineConfigurationImpl processEngineConfiguration = Context.getProcessEngineConfiguration();
-    int maxAttempts = processEngineConfiguration.getLoginMaxAttempts();
-    if (attempts < maxAttempts) {
-      if (user.getLockExpirationTime() != null && user.getLockExpirationTime().after(ClockUtil.getCurrentTime())) {
-        throw new AuthenticationException(userId);
-      } else {
-        if (matchPassword(password, user)) {
-          return true;
-        } else {
-          ++attempts;
+    if (isUserLocked(user)) {
+      throw new AuthenticationException(userId);
+    }
 
-          int maxDelayInMs = processEngineConfiguration.getLoginDelayMaxTime() * 1000;
-          int delay = (processEngineConfiguration.getLoginInitialDelay() * processEngineConfiguration.getLoginDelayFactor()) * 1000;
-          if (delay > maxDelayInMs) {
-            delay = maxDelayInMs;
-          }
-          Date lockExpirationTime = new Date(ClockUtil.getCurrentTime().getTime() + delay);
-
-          getIdentityInfoManager().updateUserLock(user, attempts, lockExpirationTime);
-
-          return false;
-        }
-      }
-    } else {
-      throw new AuthenticationException(userId, "Contact your administrator.");
+    if (matchPassword(password, user)) {
+      unlockUser(user);
+      return true;
+    }
+    else {
+      lockUser(user);
+      return false;
     }
   }
 
+  protected boolean isUserLocked(UserEntity user) {
+    ProcessEngineConfigurationImpl processEngineConfiguration = Context.getProcessEngineConfiguration();
+
+    int maxAttempts = processEngineConfiguration.getLoginMaxAttempts();
+    int attempts = user.getAttempts();
+
+    if (attempts >= maxAttempts) {
+      return true;
+    }
+
+    Date lockExpirationTime = user.getLockExpirationTime();
+    Date currentTime = ClockUtil.getCurrentTime();
+
+    return lockExpirationTime != null && lockExpirationTime.after(currentTime);
+  }
+
+  protected void lockUser(UserEntity user) {
+    ProcessEngineConfigurationImpl processEngineConfiguration = Context.getProcessEngineConfiguration();
+
+    int max = processEngineConfiguration.getLoginDelayMaxTime();
+    int baseTime = processEngineConfiguration.getLoginInitialDelay();
+    int factor = processEngineConfiguration.getLoginDelayFactor();
+    int attempts = user.getAttempts() + 1;
+
+    long delay = (long) (baseTime * Math.pow(factor, attempts - 1));
+    delay = Math.min(delay, max) * 1000;
+
+    long currentTime = ClockUtil.getCurrentTime().getTime();
+    Date lockExpirationTime = new Date(currentTime + delay);
+
+    getIdentityInfoManager().updateUserLock(user, attempts, lockExpirationTime);
+  }
+
   public void unlockUser(String userId) {
+    getAuthorizationManager().checkCamundaAdmin();
+
     UserEntity user = findUserById(userId);
     if(user != null) {
+      unlockUser(user);
+    }
+  }
+
+  protected void unlockUser(UserEntity user) {
+    if (user.getAttempts() > 0 || user.getLockExpirationTime() != null) {
       getIdentityInfoManager().updateUserLock(user, 0, null);
     }
   }
