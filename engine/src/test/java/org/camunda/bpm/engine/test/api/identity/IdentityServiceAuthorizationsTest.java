@@ -248,21 +248,6 @@ public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTes
     assertEquals(10, lockedUser.getAttempts());
   }
 
-  private void lockUser(String userId, String invalidPassword) throws ParseException {
-    Date now = sdf.parse("2000-01-24T13:00:00");
-    ClockUtil.setCurrentTime(now);
-    try {
-      for (int i = 0; i <= 11; i++) {
-        assertFalse(identityService.checkPassword(userId, invalidPassword));
-        now = DateUtils.addMinutes(now, 2);
-        ClockUtil.setCurrentTime(now);
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    ClockUtil.setCurrentTime(new Date());
-  }
-
   public void testGroupCreateAuthorizations() {
 
     // add base permission which allows nobody to create groups:
@@ -1064,6 +1049,21 @@ public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTes
 
     // now the base permission applies and grants us read access
     assertEquals(1, identityService.createTenantQuery().count());
+  }
+
+  private void lockUser(String userId, String invalidPassword) throws ParseException {
+    Date now = sdf.parse("2000-01-24T13:00:00");
+    ClockUtil.setCurrentTime(now);
+    try {
+      for (int i = 0; i <= 11; i++) {
+        assertFalse(identityService.checkPassword(userId, invalidPassword));
+        now = DateUtils.addMinutes(now, 1);
+        ClockUtil.setCurrentTime(now);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    ClockUtil.setCurrentTime(new Date());
   }
 
   protected void cleanupAfterTest() {

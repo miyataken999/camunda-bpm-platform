@@ -32,6 +32,12 @@ public class LoginAttemptsTest extends ResourceProcessEngineTestCase {
     super("org/camunda/bpm/engine/test/standalone/authentication/camunda.cfg.xml");
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    super.tearDown();
+    ClockUtil.setCurrentTime(new Date());
+  }
+
   @Test
   public void testUsuccessfulAttemptsResultInException() throws ParseException {
     User user = identityService.newUser("johndoe");
@@ -43,12 +49,12 @@ public class LoginAttemptsTest extends ResourceProcessEngineTestCase {
     try {
       for (int i = 0; i <= 6; i++) {
         assertFalse(identityService.checkPassword("johndoe", "invalid pwd"));
-        now = DateUtils.addMinutes(now, 1);
+        now = DateUtils.addSeconds(now, 5);
         ClockUtil.setCurrentTime(now);
       }
       fail("expected exception");
     } catch (AuthenticationException e) {
-      assertTrue(e.getMessage().contains("Contact your administrator."));
+      assertTrue(e.getMessage().contains("The user with id 'johndoe' tries to login without success."));
     }
 
     identityService.deleteUser(user.getId());

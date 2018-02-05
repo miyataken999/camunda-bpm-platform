@@ -724,7 +724,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected int loginMaxAttempts = 10;
   protected int loginDelayFactor = 2;
   protected int loginDelayMaxTime = 60;
-  protected int loginInitialDelay = 10;
+  protected int loginDelayBase = 2;
 
   // buildProcessEngine ///////////////////////////////////////////////////////
 
@@ -3898,12 +3898,12 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     this.loginDelayMaxTime = loginDelayMaxTime;
   }
 
-  public int getLoginInitialDelay() {
-    return loginInitialDelay;
+  public int getLoginDelayBase() {
+    return loginDelayBase;
   }
 
-  public void setLoginInitialDelay(int loginInitialDelay) {
-    this.loginInitialDelay = loginInitialDelay;
+  public void setLoginDelayBase(int loginInitialDelay) {
+    this.loginDelayBase = loginInitialDelay;
   }
 
 }

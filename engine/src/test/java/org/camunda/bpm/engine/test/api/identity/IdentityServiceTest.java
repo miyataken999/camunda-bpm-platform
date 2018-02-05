@@ -637,7 +637,7 @@ public class IdentityServiceTest {
     ClockUtil.setCurrentTime(now);
     for (int i = 0; i <= 11; i++) {
       assertFalse(identityService.checkPassword("johndoe", "invalid pwd"));
-      now = DateUtils.addMinutes(now, 2);
+      now = DateUtils.addMinutes(now, 1);
       ClockUtil.setCurrentTime(now);
     }
   }

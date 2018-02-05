@@ -120,7 +120,7 @@ public class DbIdentityServiceProvider extends DbReadOnlyIdentityServiceProvider
     ProcessEngineConfigurationImpl processEngineConfiguration = Context.getProcessEngineConfiguration();
 
     int max = processEngineConfiguration.getLoginDelayMaxTime();
-    int baseTime = processEngineConfiguration.getLoginInitialDelay();
+    int baseTime = processEngineConfiguration.getLoginDelayBase();
     int factor = processEngineConfiguration.getLoginDelayFactor();
     int attempts = user.getAttempts() + 1;
 
