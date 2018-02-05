@@ -29,7 +29,6 @@ import static org.camunda.bpm.engine.authorization.Resources.USER;
 import static org.camunda.bpm.engine.test.api.authorization.util.AuthorizationTestUtil.assertExceptionInfo;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -57,7 +56,6 @@ import org.junit.Assert;
 public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTestCase {
 
   private final static String jonny2 = "jonny2";
-  private final static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
   @Override
   protected void tearDown() throws Exception {
@@ -173,6 +171,7 @@ public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTes
     identityService.saveUser(jonny3);
 
   }
+
   public void testUserUnlock() throws ParseException {
 
     // crate user while still in god-mode:
@@ -187,7 +186,7 @@ public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTes
     UserEntity lockedUser = (UserEntity) identityService.createUserQuery().userId(jonny.getId()).singleResult();
     assertNotNull(lockedUser);
     assertNotNull(lockedUser.getLockExpirationTime());
-    assertEquals(10, lockedUser.getAttempts());
+    assertEquals(5, lockedUser.getAttempts());
 
 
     // create global auth
@@ -225,7 +224,7 @@ public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTes
     UserEntity lockedUser = (UserEntity) identityService.createUserQuery().userId(jonny.getId()).singleResult();
     assertNotNull(lockedUser);
     assertNotNull(lockedUser.getLockExpirationTime());
-    assertEquals(10, lockedUser.getAttempts());
+    assertEquals(5, lockedUser.getAttempts());
 
     processEngineConfiguration.setAuthorizationEnabled(true);
     identityService.setAuthentication("admin", null, null);
@@ -245,7 +244,7 @@ public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTes
     lockedUser = (UserEntity) identityService.createUserQuery().userId(jonny.getId()).singleResult();
     assertNotNull(lockedUser);
     assertNotNull(lockedUser.getLockExpirationTime());
-    assertEquals(10, lockedUser.getAttempts());
+    assertEquals(5, lockedUser.getAttempts());
   }
 
   public void testGroupCreateAuthorizations() {
@@ -1052,18 +1051,16 @@ public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTes
   }
 
   private void lockUser(String userId, String invalidPassword) throws ParseException {
-    Date now = sdf.parse("2000-01-24T13:00:00");
-    ClockUtil.setCurrentTime(now);
+    Date now = ClockUtil.getCurrentTime();
     try {
       for (int i = 0; i <= 11; i++) {
         assertFalse(identityService.checkPassword(userId, invalidPassword));
-        now = DateUtils.addMinutes(now, 1);
+        now = DateUtils.addMinutes(ClockUtil.getCurrentTime(), 1);
         ClockUtil.setCurrentTime(now);
       }
     } catch (Exception e) {
       e.printStackTrace();
     }
-    ClockUtil.setCurrentTime(new Date());
   }
 
   protected void cleanupAfterTest() {

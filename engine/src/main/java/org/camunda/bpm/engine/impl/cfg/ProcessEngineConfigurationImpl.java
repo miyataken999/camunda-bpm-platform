@@ -721,7 +721,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected String failedJobRetryTimeCycle;
 
   // login attempts ///////////////////////////////////////////////////////
-  protected int loginMaxAttempts = 10;
+  protected int loginMaxAttempts = 5;
   protected int loginDelayFactor = 2;
   protected int loginDelayMaxTime = 60;
   protected int loginDelayBase = 2;
