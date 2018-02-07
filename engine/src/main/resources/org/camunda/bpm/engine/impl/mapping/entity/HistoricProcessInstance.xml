@@ -435,20 +435,23 @@
   </sql>
 
   <select id="selectHistoricProcessInstanceIdsForCleanup" parameterType="org.camunda.bpm.engine.impl.db.ListQueryParameterObject" resultType="string">
-    <include refid="org.camunda.bpm.engine.impl.persistence.entity.Commons.bindOrderBy"/>
     <bind name="days" value="'pd.HISTORY_TTL_'"/>
     <bind name="date" value="'pi.END_TIME_'"/>
-    <bind name="currentTimestamp" value="parameter"/>
-    ${limitBefore}
-    SELECT DISTINCT RES.*
-    ${limitBetween}
-    FROM (
-      SELECT pi.PROC_INST_ID_, pi.END_TIME_
-      <include refid="selectHistoricProcessInstanceIdsForCleanupSql"/>
-      AND ${dayComparator}
-    ) RES
-    ${orderBy}
-    ${limitAfter}
+    <bind name="currentTimestamp" value="parameter.now"/>
+    SELECT ${limitBeforeWithoutOffset} pi.PROC_INST_ID_, pi.END_TIME_
+    <include refid="selectHistoricProcessInstanceIdsForCleanupSql"/>
+    AND ${dayComparator}
+    ${limitAfterWithoutOffset}
+  </select>
+
+  <select id="selectHistoricProcessInstanceIdsForCleanup_oracle" parameterType="org.camunda.bpm.engine.impl.db.ListQueryParameterObject" resultType="string">
+    <bind name="days" value="'pd.HISTORY_TTL_'"/>
+    <bind name="date" value="'pi.END_TIME_'"/>
+    <bind name="currentTimestamp" value="parameter.now"/>
+    SELECT /* ${parameter.queryHint} */ pi.PROC_INST_ID_, pi.END_TIME_
+    <include refid="selectHistoricProcessInstanceIdsForCleanupSql"/>
+    AND ${dayComparator}
+    ${limitAfterWithoutOffset}
   </select>
 
   <select id="selectHistoricProcessInstanceIdsForCleanupCount" parameterType="org.camunda.bpm.engine.impl.db.ListQueryParameterObject" resultType="long">

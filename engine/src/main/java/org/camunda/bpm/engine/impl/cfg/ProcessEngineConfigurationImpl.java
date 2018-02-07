@@ -705,6 +705,8 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected Map<String, String> batchOperationsForHistoryCleanup;
   protected Map<String, Integer> parsedBatchOperationsForHistoryCleanup;
 
+  protected String selectHistoricProcessInstanceIdsForCleanupQueryHint;
+
   /**
    * Size of batch in which history cleanup data will be deleted. {@link HistoryCleanupBatch#MAX_BATCH_SIZE} must be respected.
    */
@@ -1285,6 +1287,8 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     if (databaseType != null) {
       properties.put("limitBefore", DbSqlSessionFactory.databaseSpecificLimitBeforeStatements.get(databaseType));
       properties.put("limitAfter", DbSqlSessionFactory.databaseSpecificLimitAfterStatements.get(databaseType));
+      properties.put("limitBeforeWithoutOffset", DbSqlSessionFactory.databaseSpecificLimitBeforeWithoutOffsetStatements.get(databaseType));
+      properties.put("limitAfterWithoutOffset", DbSqlSessionFactory.databaseSpecificLimitAfterWithoutOffsetStatements.get(databaseType));
       properties.put("innerLimitAfter", DbSqlSessionFactory.databaseSpecificInnerLimitAfterStatements.get(databaseType));
       properties.put("limitBetween", DbSqlSessionFactory.databaseSpecificLimitBetweenStatements.get(databaseType));
       properties.put("limitBetweenFilter", DbSqlSessionFactory.databaseSpecificLimitBetweenFilterStatements.get(databaseType));
@@ -3908,4 +3912,11 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     this.loginDelayBase = loginInitialDelay;
   }
 
+  public String getSelectHistoricProcessInstanceIdsForCleanupQueryHint() {
+    return selectHistoricProcessInstanceIdsForCleanupQueryHint;
+  }
+
+  public void setSelectHistoricProcessInstanceIdsForCleanupQueryHint(String selectHistoricProcessInstanceIdsForCleanupQueryHint) {
+    this.selectHistoricProcessInstanceIdsForCleanupQueryHint = selectHistoricProcessInstanceIdsForCleanupQueryHint;
+  }
 }
