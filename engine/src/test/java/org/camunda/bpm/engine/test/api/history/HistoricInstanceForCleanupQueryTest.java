@@ -53,6 +53,7 @@ import org.camunda.bpm.engine.variable.VariableMap;
 import org.camunda.bpm.engine.variable.Variables;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -105,6 +106,7 @@ public class HistoricInstanceForCleanupQueryTest {
 
   @Test
   @Deployment(resources = { "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
+  @Ignore
   public void testSortHistoricProcessInstancesForCleanup() {
 
     final String processDefinitionKey = "oneTaskProcess";
