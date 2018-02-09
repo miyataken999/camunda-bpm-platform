@@ -705,8 +705,6 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected Map<String, String> batchOperationsForHistoryCleanup;
   protected Map<String, Integer> parsedBatchOperationsForHistoryCleanup;
 
-  protected String selectHistoricProcessInstanceIdsForCleanupQueryHint;
-
   /**
    * Size of batch in which history cleanup data will be deleted. {@link HistoryCleanupBatch#MAX_BATCH_SIZE} must be respected.
    */
@@ -3912,11 +3910,4 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     this.loginDelayBase = loginInitialDelay;
   }
 
-  public String getSelectHistoricProcessInstanceIdsForCleanupQueryHint() {
-    return selectHistoricProcessInstanceIdsForCleanupQueryHint;
-  }
-
-  public void setSelectHistoricProcessInstanceIdsForCleanupQueryHint(String selectHistoricProcessInstanceIdsForCleanupQueryHint) {
-    this.selectHistoricProcessInstanceIdsForCleanupQueryHint = selectHistoricProcessInstanceIdsForCleanupQueryHint;
-  }
 }

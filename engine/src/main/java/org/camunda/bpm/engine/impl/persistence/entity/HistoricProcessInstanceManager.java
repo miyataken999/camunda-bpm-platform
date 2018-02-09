@@ -114,17 +114,8 @@ public class HistoricProcessInstanceManager extends AbstractHistoricManager {
 
   @SuppressWarnings("unchecked")
   public List<String> findHistoricProcessInstanceIdsForCleanup(Integer batchSize) {
-    Map<String,Object> params = new HashMap<String, Object>();
-    params.put("queryHint", Context.getProcessEngineConfiguration().getSelectHistoricProcessInstanceIdsForCleanupQueryHint());
-    params.put("now", ClockUtil.getCurrentTime());
-    ListQueryParameterObject parameterObject = new ListQueryParameterObject(params, 0, batchSize);
+    ListQueryParameterObject parameterObject = new ListQueryParameterObject(ClockUtil.getCurrentTime(), 0, batchSize);
     return (List<String>) getDbEntityManager().selectList("selectHistoricProcessInstanceIdsForCleanup", parameterObject);
-  }
-
-  public Long findHistoricProcessInstanceIdsForCleanupCount() {
-    ListQueryParameterObject parameterObject = new ListQueryParameterObject();
-    parameterObject.setParameter(ClockUtil.getCurrentTime());
-    return (Long) getDbEntityManager().selectOne("selectHistoricProcessInstanceIdsForCleanupCount", parameterObject);
   }
 
   @SuppressWarnings("unchecked")
