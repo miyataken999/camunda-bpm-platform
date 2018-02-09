@@ -298,7 +298,7 @@ public class DbSqlSessionFactory implements SessionFactory {
     databaseSpecificLimitBetweenStatements.put(DB2, ", row_number() over (ORDER BY ${internalOrderBy}) rnk FROM ( select distinct RES.* ");
     databaseSpecificLimitBetweenFilterStatements.put(DB2, ", row_number() over (ORDER BY ${internalOrderBy}) rnk FROM ( select distinct RES.ID_, RES.REV_, RES.RESOURCE_TYPE_, RES.NAME_, RES.OWNER_ ");
     databaseSpecificLimitBeforeWithoutOffsetStatements.put(DB2, "");
-    databaseSpecificLimitAfterWithoutOffsetStatements.put(DB2, "FETCH FIRST #{maxResults} ROWS ONLY");
+    databaseSpecificLimitAfterWithoutOffsetStatements.put(DB2, "FETCH FIRST ${maxResults} ROWS ONLY");
     databaseSpecificOrderByStatements.put(DB2, defaultOrderBy);
     databaseSpecificLimitBeforeNativeQueryStatements.put(DB2, "SELECT SUB.* FROM ( select RES.* , row_number() over (ORDER BY ${internalOrderBy}) rnk FROM (");
     databaseSpecificDistinct.put(DB2, "");
@@ -348,7 +348,7 @@ public class DbSqlSessionFactory implements SessionFactory {
     databaseSpecificLimitAfterStatements.put(MSSQL, databaseSpecificInnerLimitAfterStatements.get(MSSQL) + " ORDER BY SUB.rnk");
     databaseSpecificLimitBetweenStatements.put(MSSQL, ", row_number() over (ORDER BY ${internalOrderBy}) rnk FROM ( select distinct RES.* ");
     databaseSpecificLimitBetweenFilterStatements.put(MSSQL, "");
-    databaseSpecificLimitBeforeWithoutOffsetStatements.put(MSSQL, "TOP #{maxResults}");
+    databaseSpecificLimitBeforeWithoutOffsetStatements.put(MSSQL, "TOP (#{maxResults})");
     databaseSpecificLimitAfterWithoutOffsetStatements.put(MSSQL, "");
     databaseSpecificOrderByStatements.put(MSSQL, "");
     databaseSpecificLimitBeforeNativeQueryStatements.put(MSSQL, "SELECT SUB.* FROM ( select RES.* , row_number() over (ORDER BY ${internalOrderBy}) rnk FROM (");
