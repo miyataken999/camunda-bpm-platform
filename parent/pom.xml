@@ -21,7 +21,7 @@
     <version.cxf>3.0.3</version.cxf>
     <version.junit>4.11</version.junit>
     <version.assertj>1.5.0</version.assertj>
-    <version.logback>1.1.2</version.logback>
+    <version.logback>1.2.0</version.logback>
     <version.slf4j>1.7.7</version.slf4j>
     <version.resteasy>2.3.5.Final</version.resteasy>
     <version.jersey2>2.25.1</version.jersey2>
